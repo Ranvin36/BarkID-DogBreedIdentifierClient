@@ -1,9 +1,12 @@
-import { View,Image,Text, StyleSheet } from "react-native"
+import { router } from "expo-router"
+import { View,Image,Text, StyleSheet, TouchableOpacity } from "react-native"
 
 
 interface Item{
     image:string,
-    name:string
+    breed:string,
+    date:string,
+    probability:string
 }
 
 interface PredictonsProps{
@@ -11,12 +14,15 @@ interface PredictonsProps{
 }
 
 const PredictonsSlider:React.FC<PredictonsProps> = ({item}) => {
+    function navigateBreedDetails(){
+        router.push({pathname:"/BreedDetails",params:{breed:item.breed,probability:item.probability}})
+    }
     return(
-            <View style={styles.predictionsContainer}>
+            <TouchableOpacity style={styles.predictionsContainer} onPress={navigateBreedDetails}>
               <Image source={{uri:item.image}} style={{width:140,height:140,borderRadius:20}} />
-              <Text style={{fontFamily:"Poppins-Light"}}>{item.name}</Text>
-              <Text style={{fontFamily:"Poppins-Regular"}}>07/24</Text>
-            </View>
+              <Text style={{fontFamily:"Poppins-Light"}}>{item.breed.toString().toLocaleUpperCase()}</Text>
+              <Text style={{fontFamily:"Poppins-Regular"}}>{item.date}</Text>
+            </TouchableOpacity>
     )
 }
 

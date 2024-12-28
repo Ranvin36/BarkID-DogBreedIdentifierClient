@@ -1,14 +1,31 @@
 import { router } from 'expo-router';
-import { View,Text, StyleSheet,TouchableOpacity, FlatList, Image } from 'react-native';
+import { View,Text, StyleSheet,TouchableOpacity, FlatList, Image, ScrollView, RefreshControl } from 'react-native';
 import {AntDesign} from "@expo/vector-icons"
 import { dummy } from '@/assets/dummy';
 import PredictonsSlider from '@/components/PredictionsSlider';
 import * as ImagePicker from "expo-image-picker"
 import axios from "axios"
+import { getObject, SaveObject } from '@/components/StoreObject';
+import { useCallback, useEffect, useState } from 'react';
 
 export default function HomeScreen() {
 
+  const [recentPredictions, setRecentPredictions] = useState([])
+  const [refreshing,setRefreshing] = useState(false)
+  const getRecentPredictions = async() => {
+    const data = await getObject()
+    setRecentPredictions(data)
+  }
+
+  const onRefresh = useCallback(() =>{
+    setRefreshing(true),
+    setTimeout(() =>{
+      setRefreshing(false)
+    },2000)
+  },[])
+
   const pickImage = async () => {
+
     let selectImage = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
@@ -19,27 +36,43 @@ export default function HomeScreen() {
     if (!selectImage.canceled) {
       const formData = new FormData();
       const fileName = selectImage.assets[0].uri.split('/').pop() || 'image.jpg';
+
       formData.append("image",{
         uri:selectImage.assets[0].uri,
         type: 'image/jpeg',
         name:fileName
       });
-      // console.log(formData._parts)
+
+
       try {
-        const response = await axios.post("http://192.168.8.101:8080/predict", formData, {
+        const response = await axios.post("http://192.168.8.102:8080/predict", formData, {
             headers: {
                 'Accept': 'application/json',
                 "Content-Type": "multipart/form-data",
-              }});
-        router.push("/BreedDetails")
-      } catch (error) {
-                console.error(error);
-      }}
+              }})
+
+        const predictedBreed = response.data["Predicted Breed: "]
+        const predictionProbability = response.data["Probability"]
+        const transformedText = predictedBreed.replace(/_/g, " ");
+        const savePrediction =  SaveObject(transformedText,selectImage.assets[0].uri,predictionProbability)
+        router.push({pathname:"/BreedDetails",params:{breed: transformedText,probability:predictionProbability}})
+
+      } catch (error:any) {
+        if (error.response) {
+          console.error('Server responded with status:', error.response.status);
+        }
+      }
+    }
+      
   };
+
+  useEffect(() => {
+      getRecentPredictions();
+  },[refreshing])
   
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}>
       <View style={styles.header}>
         <View>
           <Text style={styles.headerText}>BarkID</Text>
@@ -58,14 +91,14 @@ export default function HomeScreen() {
           <Text style={{fontFamily:"Poppins-Light",fontSize:18}}>Recent Predictons</Text>
         </View>
         <View>
-            <FlatList data={dummy} showsHorizontalScrollIndicator={false} horizontal renderItem={({item}:any) =>{
+            <FlatList data={recentPredictions} showsHorizontalScrollIndicator={false} horizontal renderItem={({item}:any) =>{
               return(
                 <PredictonsSlider item={item}/>
               )
             }}/>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
