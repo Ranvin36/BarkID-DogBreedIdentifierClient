@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { View,Text, StyleSheet,TouchableOpacity, FlatList, Image, ScrollView, RefreshControl } from 'react-native';
+import { View,Text, StyleSheet,TouchableOpacity, FlatList, Image, ScrollView, RefreshControl, StatusBar } from 'react-native';
 import {AntDesign} from "@expo/vector-icons"
 import { dummy } from '@/assets/dummy';
 import PredictonsSlider from '@/components/PredictionsSlider';
@@ -7,11 +7,14 @@ import * as ImagePicker from "expo-image-picker"
 import axios from "axios"
 import { getObject, SaveObject } from '@/components/StoreObject';
 import { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Loader from './loader';
 
 export default function HomeScreen() {
 
   const [recentPredictions, setRecentPredictions] = useState([])
   const [refreshing,setRefreshing] = useState(false)
+  const [loading, setLoading] = useState(false)
   const getRecentPredictions = async() => {
     const data = await getObject()
     setRecentPredictions(data)
@@ -29,7 +32,7 @@ export default function HomeScreen() {
     let selectImage = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
-      aspect: [4, 3],
+      // aspect: [4, 3],
       quality: 1,
     });
   
@@ -45,16 +48,18 @@ export default function HomeScreen() {
 
 
       try {
-        const response = await axios.post("http://192.168.8.102:8080/predict", formData, {
-            headers: {
-                'Accept': 'application/json',
-                "Content-Type": "multipart/form-data",
-              }})
-
-        const predictedBreed = response.data["Predicted Breed: "]
-        const predictionProbability = response.data["Probability"]
-        const transformedText = predictedBreed.replace(/_/g, " ");
-        const savePrediction =  SaveObject(transformedText,selectImage.assets[0].uri,predictionProbability)
+        setLoading(true)
+        const response = await axios.post("https://dogbreedclassifier-931642089892.us-central1.run.app/predict", formData, {
+          headers: {
+            'Accept': 'application/json',
+            "Content-Type": "multipart/form-data",
+          }})
+          
+          const predictedBreed = response.data["Predicted Breed: "]
+          const predictionProbability = response.data["Probability"]
+          const transformedText = predictedBreed.replace(/_/g, " ");
+          const savePrediction =  SaveObject(transformedText,selectImage.assets[0].uri,predictionProbability)
+          setLoading(false)
         router.push({pathname:"/BreedDetails",params:{breed: transformedText,probability:predictionProbability}})
 
       } catch (error:any) {
@@ -70,36 +75,55 @@ export default function HomeScreen() {
       getRecentPredictions();
   },[refreshing])
   
+  if(loading){
+    return(
+      <Loader/>
+    )
+  }
+  else{
+    return (
+      <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}>
+        <SafeAreaView>
+  
+        <StatusBar  barStyle="dark-content"/>
+        <View style={styles.header}>
+          <View style={{flexDirection:"row",alignItems:"center"}}>
+            <View>
+              <Image source={require("../assets/images/logo.png")} style={{width:50,height:50}}/>
+            </View>
+            <Text style={styles.headerText}>BarkID</Text>
+          </View>
+  
+        </View>
+        <View style={{marginHorizontal:20}}>
+          <TouchableOpacity style={styles.makePrediction} onPress={pickImage}>
+              <AntDesign name="plus" size={30} color="#1e69e3"/>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.recentPredictions}>
+          <View style={{paddingHorizontal:20}}>
+            <Text style={{fontFamily:"Poppins-Light",fontSize:18}}>Recent Predictons</Text>
+          </View>
+          {recentPredictions ?          
+            <View>
+                <FlatList data={recentPredictions} showsHorizontalScrollIndicator={false} horizontal  renderItem={({item}:any) =>{
+                  return(
+                    <PredictonsSlider item={item}/>
+                  )
+                }}/>
+            </View>
+                            :
+            <View style={{marginTop:30}}>
+              <Text style={{fontFamily:"Poppins-Light", color:"#333",textAlign:"center"}}>No Predictions Made Recently</Text>
+            </View>
+        
+        }
+        </View>
+              </SafeAreaView>
+      </ScrollView>
+    );
+  }
 
-  return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerText}>BarkID</Text>
-        </View>
-        <TouchableOpacity style={styles.button} onPress={() => router.push("/BreedDetails")}>
-                <AntDesign name="user" size={20}/>
-        </TouchableOpacity>
-      </View>
-      <View style={{marginHorizontal:20}}>
-        <TouchableOpacity style={styles.makePrediction} onPress={pickImage}>
-            <AntDesign name="plus" size={30} color="#1e69e3"/>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.recentPredictions}>
-        <View style={{paddingHorizontal:20}}>
-          <Text style={{fontFamily:"Poppins-Light",fontSize:18}}>Recent Predictons</Text>
-        </View>
-        <View>
-            <FlatList data={recentPredictions} showsHorizontalScrollIndicator={false} horizontal renderItem={({item}:any) =>{
-              return(
-                <PredictonsSlider item={item}/>
-              )
-            }}/>
-        </View>
-      </View>
-    </ScrollView>
-  );
 }
 
 
@@ -107,7 +131,7 @@ const styles = StyleSheet.create({
   container:{
     backgroundColor:"#fff",
     height:"100%",
-    paddingVertical:20,
+    paddingVertical:15,
   },
   header:{
     flexDirection:"row",

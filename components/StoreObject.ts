@@ -7,10 +7,9 @@ export async function SaveObject(predicted_label:string,uri:any,predictionProbab
     const data = {
         "breed":predicted_label,
         "image":uri,
-        "date": `${date.getDate()}/${date.getMonth()}/${date.getFullYear()}`,
+        "date": `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear()}`,
         "probability":`${predictionProbability}`
     }
-    AsyncStorage.clear()
     try{
         const setPrediction = await AsyncStorage.getItem("recent_predictions")
         const predictions = setPrediction? JSON.parse(setPrediction) : []
@@ -20,8 +19,6 @@ export async function SaveObject(predicted_label:string,uri:any,predictionProbab
     catch(error){
         console.log(error)
     }
-    localStorage.setItem("recent_predictions",JSON.stringify(data))
-    return;
 }
 
 export async function getObject(){

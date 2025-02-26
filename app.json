@@ -4,7 +4,7 @@
     "slug": "BarkID",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,39 +13,60 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.ranvin36.BarkID"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
       ],
       [
-      "expo-font",{
-        "font":[
-          "./assets/fonts/Poppins-Black.ttf",
-          "./assets/fonts/Poppins-Bold.ttf",
-          "./assets/fonts/Poppins-Light.ttf",
-          "./assets/fonts/Poppins-Medium.ttf",
-          "./assets/fonts/Poppins-Regular.ttf"
-        ]
-      }]
+        "expo-font",
+        {
+          "font": [
+            "./assets/fonts/Poppins-Black.ttf",
+            "./assets/fonts/Poppins-Bold.ttf",
+            "./assets/fonts/Poppins-Light.ttf",
+            "./assets/fonts/Poppins-Medium.ttf",
+            "./assets/fonts/Poppins-Regular.ttf"
+          ]
+        }
+      ]
     ],
+    "babel": {
+        "presets": ["module:metro-react-native-babel-preset"],
+        "plugins": [
+          ["module:react-native-dotenv", {
+            "moduleName": "@env",
+            "path": ".env"
+          }]
+        ]
+      }
+    ,
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "f8954bfb-32ac-44c9-b3c6-b1152e8f7692"
+      }
     }
   }
 }
