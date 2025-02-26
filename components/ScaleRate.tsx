@@ -4,12 +4,13 @@ interface ScaleRateProps{
     max:number | any,
     labelLeft:string,
     labelRight:string,
-    title:string
+    title:string,
+    index:number
 }
 
-const ScaleRate:React.FC<ScaleRateProps>= ({max,labelLeft,labelRight,title}) =>{
+const ScaleRate:React.FC<ScaleRateProps>= ({max,labelLeft,labelRight,title,index}) =>{
     return(
-                    <View style={styles.scaleContainer}>
+                    <View style={styles.scaleContainer} key={index}>
                         <Text style={styles.infoBgKey}>{title}</Text>
                         <View style={styles.scaleCenter}>
                             <View style={styles.scale}>

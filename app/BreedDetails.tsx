@@ -5,6 +5,7 @@ import axios from "axios"
 import { useEffect, useState } from "react"
 import BreedInfoBg from "@/components/BreedInfoBg"
 import ScaleRate from "@/components/ScaleRate"
+import { SafeAreaView } from "react-native-safe-area-context"
 const {width:SCREEN_WIDTH} = Dimensions.get('window')
 
 interface BreedProps{
@@ -37,6 +38,7 @@ const BreedDetails:React.FC = () =>{
     },[])
     return(
         <ScrollView style={styles.container}>
+            <SafeAreaView>
             <View style={styles.imageHeader}>
                 <Image source={{uri:breedDetails?.image_link}} style={styles.imageBg}/>
                 <TouchableOpacity style={styles.arrow} onPress={() => router.back()}>
@@ -57,14 +59,14 @@ const BreedDetails:React.FC = () =>{
 
                                                 null
                         }
-                        <ScaleRate max={breedDetails?.shedding} labelLeft="No Shedding" labelRight="Max Shedding" title="Shedding" key={1}/>
-                        <ScaleRate max={breedDetails?.barking} labelLeft="Minimal Barking" labelRight="Max Barking" title="Barking" key={2}/>
+                        <ScaleRate max={breedDetails?.shedding} labelLeft="No Shedding" labelRight="Max Shedding" title="Shedding" index={1}/>
+                        <ScaleRate max={breedDetails?.barking} labelLeft="Minimal Barking" labelRight="Max Barking" title="Barking" index={2}/>
                         <BreedInfoBg key1="Min Life Expectancy" key2="Max Life Expectancy" value1={breedDetails?.min_life_expectancy + " Yrs"} value2={breedDetails?.max_life_expectancy + " Yrs"}/>
-                        <ScaleRate max={breedDetails?.energy} labelLeft="Low Energy" labelRight="High Energy" title="Energy" key={3}/>
+                        <ScaleRate max={breedDetails?.energy} labelLeft="Low Energy" labelRight="High Energy" title="Energy" index={3}/>
                         <BreedInfoBg key1="Min Height Male" key2="Max Height Male" value1={breedDetails?.min_height_male+" In"} value2={breedDetails?.max_height_male+" In"}/>
                     </View>
             </View>
-
+            </SafeAreaView>
         </ScrollView>
     )
 }
